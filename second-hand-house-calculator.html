@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f5f7">
+  <title>二手房落地价</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page-bg: #f3f5f7;
+      --card-bg: #ffffff;
+      --ink: #20313f;
+      --muted: #73808c;
+      --line: #e1e7eb;
+      --accent: #117b7b;
+      --accent-dark: #153f59;
+      --accent-soft: #e9f5f4;
+      --input-border: #c8d2d9;
+      --focus-ring: rgba(17, 123, 123, .2);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--page-bg);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background: var(--page-bg);
+      font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(100% - 24px, 940px);
+      margin: 0 auto;
+      padding: 0 0 24px;
+    }
+
+    .top-area {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 28px 0 0;
+      background: var(--page-bg);
+      box-shadow: 0 2px 8px rgba(35, 54, 67, .08);
+    }
+
+    .page-header {
+      margin-bottom: 18px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .comparison-summary {
+      overflow: hidden;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      background: var(--accent-dark);
+      color: #fff;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .summary-item {
+      min-width: 0;
+      padding: 16px;
+    }
+
+    .summary-item + .summary-item {
+      border-left: 1px solid rgba(255, 255, 255, .2);
+    }
+
+    .summary-label {
+      display: block;
+      color: rgba(255, 255, 255, .76);
+      font-size: 13px;
+    }
+
+    .summary-value {
+      display: inline-block;
+      margin-top: 3px;
+      font-size: clamp(24px, 7vw, 32px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .summary-unit {
+      margin-left: 3px;
+      color: rgba(255, 255, 255, .8);
+      font-size: 13px;
+    }
+
+    .difference-row {
+      padding: 11px 16px;
+      border-top: 1px solid rgba(255, 255, 255, .2);
+      color: #d8eeee;
+      font-size: 14px;
+    }
+
+    .difference-row[hidden] {
+      display: none;
+    }
+
+    .calculators {
+      display: grid;
+      gap: 16px;
+    }
+
+    .calculator-scroller {
+      max-height: max(160px, calc(100dvh - 190px));
+      overflow-y: auto;
+      padding: 0 4px 24px;
+      margin: 0 -4px;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .calculator-card {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(35, 54, 67, .04);
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+    }
+
+    .card-heading h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.25;
+    }
+
+    .card-status {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .card-status.is-complete {
+      color: var(--accent);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(106px, 38%);
+      align-items: center;
+      gap: 12px;
+      min-height: 52px;
+      border-bottom: 1px solid #edf0f2;
+    }
+
+    .field-label {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .money-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      padding: 7px 9px;
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      outline: 0;
+      color: var(--ink);
+      background: #fff;
+      text-align: right;
+      font-size: 16px;
+      line-height: 1.2;
+      -moz-appearance: textfield;
+    }
+
+    .money-input::-webkit-inner-spin-button,
+    .money-input::-webkit-outer-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+
+    .money-input::placeholder {
+      color: #a4afb7;
+      font-size: 14px;
+    }
+
+    .money-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .computed-value {
+      color: var(--accent);
+      font-size: 14px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .rate-row {
+      display: block;
+      padding: 10px 0 8px;
+      border-bottom: 1px solid #edf0f2;
+    }
+
+    .rate-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .rate-output {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .rate-input {
+      display: block;
+      width: 100%;
+      height: 42px;
+      margin: 4px 0 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .rate-range {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .total-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 15px;
+    }
+
+    .total-label {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .total-value {
+      color: var(--accent-dark);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: right;
+    }
+
+    .total-unit {
+      margin-left: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    @media (min-width: 760px) {
+      .top-area {
+        padding-top: 42px;
+      }
+
+      .calculators {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .top-area {
+        width: min(100% - 20px, 940px);
+        padding-top: 20px;
+        margin: 0 auto;
+      }
+
+      .calculator-card,
+      .summary-item {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .field-row {
+        grid-template-columns: minmax(0, 1fr) 108px;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <div class="top-area">
+      <header class="page-header">
+        <h1>二手房落地价</h1>
+      </header>
+
+      <section class="comparison-summary" aria-label="方案对比结果">
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">A 落地总价</span>
+            <strong class="summary-value" data-summary-total="A">--</strong>
+            <span class="summary-unit">万元</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">B 落地总价</span>
+            <strong class="summary-value" data-summary-total="B">--</strong>
+            <span class="summary-unit">万元</span>
+          </div>
+        </div>
+        <div class="difference-row" data-difference-row hidden aria-live="polite">
+          <span data-difference-text></span>
+        </div>
+      </section>
+    </div>
+
+    <div class="calculator-scroller">
+      <div class="calculators">
+      <section class="calculator-card" data-scenario="A" aria-labelledby="scenario-a-title">
+        <div class="card-heading">
+          <h2 id="scenario-a-title">计算器 A</h2>
+          <span class="card-status" data-status>待填写</span>
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="a-house-price">房价（万元）</label>
+          <input class="money-input" id="a-house-price" data-field="housePrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="请输入">
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="a-signed-price">网签价（万元）</label>
+          <input class="money-input" id="a-signed-price" data-field="signedPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="请输入">
+        </div>
+        <div class="field-row">
+          <span class="field-label">契税（1%）</span>
+          <output class="computed-value" data-result="deedTax">-- 万</output>
+        </div>
+        <div class="rate-row">
+          <div class="rate-heading">
+            <label class="field-label" for="a-agent-rate">中介费比例</label>
+            <output class="rate-output" data-result="agentRate">0.5%</output>
+          </div>
+          <input class="rate-input" id="a-agent-rate" data-field="agentRate" type="range" min="0.3" max="1" step="0.1" value="0.5">
+          <div class="rate-range"><span>0.3%</span><span>1.0%</span></div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">中介费</span>
+          <output class="computed-value" data-result="agentFee">-- 万</output>
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="a-personal-tax">个税（万元）</label>
+          <input class="money-input" id="a-personal-tax" data-field="personalTax" type="number" min="0" step="0.01" inputmode="decimal" value="0">
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="a-service-fee">手续费（万元）</label>
+          <input class="money-input" id="a-service-fee" data-field="serviceFee" type="number" min="0" step="0.01" inputmode="decimal" value="0">
+        </div>
+        <div class="total-row">
+          <span class="total-label">落地总价</span>
+          <strong class="total-value"><span data-result="total">--</span><span class="total-unit">万元</span></strong>
+        </div>
+      </section>
+
+      <section class="calculator-card" data-scenario="B" aria-labelledby="scenario-b-title">
+        <div class="card-heading">
+          <h2 id="scenario-b-title">计算器 B</h2>
+          <span class="card-status" data-status>待填写</span>
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="b-house-price">房价（万元）</label>
+          <input class="money-input" id="b-house-price" data-field="housePrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="请输入">
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="b-signed-price">网签价（万元）</label>
+          <input class="money-input" id="b-signed-price" data-field="signedPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="请输入">
+        </div>
+        <div class="field-row">
+          <span class="field-label">契税（1%）</span>
+          <output class="computed-value" data-result="deedTax">-- 万</output>
+        </div>
+        <div class="rate-row">
+          <div class="rate-heading">
+            <label class="field-label" for="b-agent-rate">中介费比例</label>
+            <output class="rate-output" data-result="agentRate">0.5%</output>
+          </div>
+          <input class="rate-input" id="b-agent-rate" data-field="agentRate" type="range" min="0.3" max="1" step="0.1" value="0.5">
+          <div class="rate-range"><span>0.3%</span><span>1.0%</span></div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">中介费</span>
+          <output class="computed-value" data-result="agentFee">-- 万</output>
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="b-personal-tax">个税（万元）</label>
+          <input class="money-input" id="b-personal-tax" data-field="personalTax" type="number" min="0" step="0.01" inputmode="decimal" value="0">
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="b-service-fee">手续费（万元）</label>
+          <input class="money-input" id="b-service-fee" data-field="serviceFee" type="number" min="0" step="0.01" inputmode="decimal" value="0">
+        </div>
+        <div class="total-row">
+          <span class="total-label">落地总价</span>
+          <strong class="total-value"><span data-result="total">--</span><span class="total-unit">万元</span></strong>
+        </div>
+      </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="calculator.js"></script>
+  <script>
+    (function () {
+      const calculator = window.HouseCostCalculator;
+      const cards = Array.from(document.querySelectorAll('[data-scenario]'));
+      const summaryTotals = {
+        A: document.querySelector('[data-summary-total="A"]'),
+        B: document.querySelector('[data-summary-total="B"]')
+      };
+      const differenceRow = document.querySelector('[data-difference-row]');
+      const differenceText = document.querySelector('[data-difference-text]');
+
+      function displayMoney(value) {
+        return calculator.formatWan(value) + ' 万';
+      }
+
+      function readValues(card) {
+        const values = {};
+        card.querySelectorAll('[data-field]').forEach(function (field) {
+          values[field.dataset.field] = field.value;
+        });
+        return values;
+      }
+
+      function renderCard(card) {
+        const result = calculator.calculateScenario(readValues(card));
+        card.querySelector('[data-result="deedTax"]').textContent = displayMoney(result.deedTax);
+        card.querySelector('[data-result="agentFee"]').textContent = displayMoney(result.agentFee);
+        card.querySelector('[data-result="agentRate"]').textContent = result.agentRate.toFixed(1) + '%';
+        card.querySelector('[data-result="total"]').textContent = result.hasHousePrice
+          ? calculator.formatWan(result.total)
+          : '--';
+
+        const status = card.querySelector('[data-status]');
+        status.textContent = result.hasHousePrice ? '已填写' : '待填写';
+        status.classList.toggle('is-complete', result.hasHousePrice);
+        return result;
+      }
+
+      function render() {
+        const results = cards.map(renderCard);
+        results.forEach(function (result, index) {
+          summaryTotals[cards[index].dataset.scenario].textContent = result.hasHousePrice
+            ? calculator.formatWan(result.total)
+            : '--';
+        });
+
+        const difference = calculator.calculateDifference(results[0], results[1]);
+        if (!difference) {
+          differenceRow.hidden = true;
+          differenceText.textContent = '';
+          return;
+        }
+
+        differenceRow.hidden = false;
+        if (difference.amount === 0) {
+          differenceText.textContent = 'A、B 落地总价相同：' + calculator.formatWan(difference.amount) + ' 万元';
+          return;
+        }
+        const lower = difference.higher === 'A' ? 'B' : 'A';
+        differenceText.textContent = difference.higher + ' 比 ' + lower + ' 贵：' + calculator.formatWan(difference.amount) + ' 万元';
+      }
+
+      cards.forEach(function (card) {
+        card.querySelectorAll('[data-field]').forEach(function (field) {
+          field.addEventListener('input', render);
+        });
+      });
+
+      render();
+    }());
+  </script>
+</body>
+</html>
