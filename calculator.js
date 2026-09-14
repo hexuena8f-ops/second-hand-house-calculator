@@ -18,7 +18,8 @@
     const agentRate = Math.min(1, Math.max(0.3, toNumber(values.agentRate) || 0.5));
     const personalTax = toNumber(values.personalTax);
     const serviceFeeAmount = toNumber(values.serviceFee);
-    const serviceFee = values.serviceFeeSign === 'negative' ? -serviceFeeAmount : serviceFeeAmount;
+    const serviceFeeSign = values.serviceFeeSign === 'negative' ? 'negative' : 'positive';
+    const serviceFee = serviceFeeSign === 'negative' && serviceFeeAmount > 0 ? -serviceFeeAmount : serviceFeeAmount;
     const deedTax = signedPrice * 0.01;
     const agentFee = housePrice * agentRate / 100;
 
@@ -30,6 +31,7 @@
       agentFee,
       personalTax,
       serviceFee,
+      serviceFeeSign,
       total: housePrice + deedTax + agentFee + personalTax + serviceFee,
       hasHousePrice: hasValue(values.housePrice),
     };
